@@ -1,0 +1,81 @@
+name: Build GreenLeaf EXACT DESIGN APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Compile Android app-debug.apk
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Check exact-design source files
+        shell: bash
+        run: |
+          test -s pubspec.yaml
+          test -s lib/main.dart
+          test -s assets/index.html
+          grep -q 'greenleafPageFade' assets/index.html
+          grep -q 'webview_flutter' pubspec.yaml
+          echo 'The smooth-navigation HTML and Flutter WebView shell are present.'
+
+      - name: Generate Android platform files
+        run: flutter create --platforms=android --org in.greenleaf --project-name greenleaf_exact_design .
+
+      - name: Configure app name and launcher icon
+        shell: bash
+        run: |
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          import re
+          import shutil
+
+          manifest = Path('android/app/src/main/AndroidManifest.xml')
+          s = manifest.read_text(encoding='utf-8')
+          s = re.sub(r'android:label="[^"]*"', 'android:label="GreenLeaf"', s, count=1)
+          manifest.write_text(s, encoding='utf-8')
+          for dpi in ('mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi'):
+              src = Path(f'branding/ic_launcher_{dpi}.png')
+              dest = Path(f'android/app/src/main/res/mipmap-{dpi}/ic_launcher.png')
+              if src.exists():
+                  dest.parent.mkdir(parents=True, exist_ok=True)
+                  shutil.copy2(src, dest)
+          PYCODE
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Verify app-debug.apk
+        run: test -s build/app/outputs/flutter-apk/app-debug.apk
+
+      - name: Provide APK download
+        uses: actions/upload-artifact@v4
+        with:
+          name: GreenLeaf-EXACT-DESIGN-APK
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 30
+          if-no-files-found: error
