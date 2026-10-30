@@ -1,0 +1,1 @@
+GreenLeaf EXACT DESIGN: replace lib, assets, pubspec.yaml, and branding in GitHub. Paste WORKFLOW_TO_PASTE_ON_GITHUB.yml into .github/workflows/main.yml. Commit. Actions -> Build GreenLeaf EXACT DESIGN APK -> Artifacts -> GreenLeaf-EXACT-DESIGN-APK -> extract app-debug.apk.

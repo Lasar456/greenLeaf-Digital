@@ -1,0 +1,17 @@
+name: greenleaf_exact_design
+version: 3.0.0+7
+description: GreenLeaf exact UI Android test app - original HTML rendered locally through Flutter WebView.
+publish_to: none
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_flutter: ^4.10.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/index.html
